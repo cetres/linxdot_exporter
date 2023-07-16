@@ -1,0 +1,15 @@
+version: '2'
+services:
+  linxdot_exporter:
+    image: cetres/linxdot_exporter:latest
+    ports:
+        - "8061:8061"
+    environment:
+        #### CHANGE THIS ####
+        MINER_HOST: "miner.hostname"
+        MINER_USERNAME: "admin"    
+        MINER_PASSWORD: "xxxxxxxx"
+        EXPORTER_REFRESH: "60"
+        #FOR DEBUG UNCOMMENT NEXT LINE
+        #EXPORTER_DEBUG: "True"
+    restart: always
