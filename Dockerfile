@@ -1,5 +1,12 @@
-FROM python:3.10-slim
+FROM python:3.10-alpine
 
-RUN pip install --no-cache-dir linxdot_exporter
+LABEL MAINTAINER="Gustavo Oliveira <cetres@gmail.com>"
+LABEL NAME=linxdot_exporter
+
+WORKDIR /usr/src/app
+COPY . .
+RUN python setup.py install
+
+EXPOSE 8061/tcp
 
 CMD ["python", "-m" , "linxdot_exporter"]
