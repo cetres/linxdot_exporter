@@ -8,7 +8,7 @@ from prometheus_client.core import GaugeMetricFamily, InfoMetricFamily
 
 import requests
 
-from .exceptions import LoginFailedException, RequestException
+from .exceptions import LoginExpiredException, LoginFailedException, RequestException
 
 class LinxdotCollector(object):
     _base_url = str
@@ -36,7 +36,7 @@ class LinxdotCollector(object):
 
     def login(self) -> None:
         url = urljoin(self._base_url, 'login_odd')
-        logging.debug(f'Login at url {url} with username {self._login_params["username"]}')
+        logging.info(f'Login at url {url} with username {self._login_params["username"]}')
         r = self.sess.post(url, data=self._login_params)
         if r.status_code != 200:
             logging.warn(f'Login failed at {url} - HTTP error code: {r.status_code}')
@@ -47,7 +47,10 @@ class LinxdotCollector(object):
         if self._refresh_interval is None or self._collection_validity < ts:
             url = urljoin(self._base_url, 'info/system')
             r = self.sess.get(url)
-            if r.status_code != 200:
+            if r.status_code == 401:
+                logging.warn('Status failed at {url} - Access Denied')
+                raise LoginExpiredException()
+            elif r.status_code != 200:
                 logging.warn(f'Status failed at {url} - HTTP error code: {r.status_code}')
                 raise RequestException()
             self._last_collection = r.json()
@@ -59,8 +62,14 @@ class LinxdotCollector(object):
 
     def collect(self):
         logging.debug('Running collector')
-        info = self.info()
-        logging.debug(f'Info: {info}')
+        info = None
+        try:
+            info = self.info()
+        except LoginExpiredException:
+            logging.warn('Re-login')
+            self.login()
+            info = self.info()
+        logging.debug(f'Data: {info}')
 
         info_metric = InfoMetricFamily("miner_exporter", "Miner Information",
                                        labels=[])

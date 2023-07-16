@@ -4,5 +4,8 @@ class ExporterException(Exception):
 class LoginFailedException(ExporterException):
     pass
 
+class LoginExpiredException(ExporterException):
+    pass
+
 class RequestException(ExporterException):
     pass

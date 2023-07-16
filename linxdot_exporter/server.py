@@ -3,6 +3,7 @@ import hashlib
 import logging
 import os
 import time
+import sys
 
 from prometheus_client import REGISTRY, start_http_server, Summary
 
@@ -16,7 +17,7 @@ def hash_cred(text):
 def run_server(args):
     logging.basicConfig(filename=args.log_file, format='%(levelname)s: %(message)s',
                     level=logging.DEBUG if args.debug else logging.INFO)
-    
+    logging.info(f'Starting server. Version {__version__}')
     username = args.username if args.plain_credentials else hash_cred(args.username)
     password = args.password if args.plain_credentials else hash_cred(args.password)
 
@@ -33,12 +34,12 @@ def exec_cmd():
     parser = argparse.ArgumentParser(description='''Exporter for metrics for Linxdot miner devices''')
     parser.add_argument('-f', '--log_file', default=os.environ.get('LOG_FILE'), 
                         help='Path of log file')
-    parser.add_argument('-o', '--host', default=os.environ.get('LINXDOT_HOST'), 
-                        required=True, help='Hostname or IP address of Linxdot miner')
-    parser.add_argument('-u', '--username', default=os.environ.get('LINXDOT_USERNAME'), 
-                        required=True, help='Username of Linxdot miner')
-    parser.add_argument('-p', '--password', default=os.environ.get('LINXDOT_PASSWORD'), 
-                        required=True, help='Password of Linxdot miner')
+    parser.add_argument('-o', '--host', default=os.environ.get('MINER_HOST'), 
+                        help='Miner hostname or IP address')
+    parser.add_argument('-u', '--username', default=os.environ.get('MINER_USERNAME'), 
+                        help='Miner API username')
+    parser.add_argument('-p', '--password', default=os.environ.get('MINER_PASSWORD'), 
+                        help='Miner API password')
     parser.add_argument('-a', '--plain_credentials', action='store_true',
                         default=os.environ.get('PLAIN_CREDENTIALS', False),
                         help='Use login credentials without MD5 hashing')
@@ -53,4 +54,7 @@ def exec_cmd():
                         help='TCP port number of exporter listens')
     parser.add_argument('--version', action='version', version=__version__)
     args = parser.parse_args()
+    if args.host is None or args.username is None or args.password is None:
+        print("Required arguments or environment variables: HOST, USERNAME and PASSWORD")
+        sys.exit(1)
     run_server(args)
