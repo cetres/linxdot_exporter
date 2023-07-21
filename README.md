@@ -4,6 +4,10 @@ Exporter for metrics for [Linxdot](https://www.linxdot.com/) miner devices.
 
 The goal of this community-driven initiative is to monitor the Linxdot miner using the open-source [Prometheus platform](https://prometheus.io/). The metrics were discovered by analyzing the responses from the embedded dashboard frontend, as there is currently no official documentation provided by Linxdot.
 
+Once Prometheus has collected metrics and stored them in a database, you can easily create a [Grafana](https://github.com/grafana/grafana) dashboard to visualize the data:
+
+![Grafana example](images/grafana-viewer.png)
+
 ## Metrics
 
 Metrics identified:
